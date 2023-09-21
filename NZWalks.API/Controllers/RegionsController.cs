@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using NZWalks.API.Models.Domain;
 using NZWalks.API.Models.DTO;
 
@@ -17,7 +18,7 @@ namespace NZWalks.API.Controllers
 
         //Create Region
         [HttpPost]
-        public IActionResult Create([FromForm] AddRegionDto addRegionDto)
+        public async Task<IActionResult> Create([FromForm] AddRegionDto addRegionDto)
         {
             var region = new Region() {
                 Name = addRegionDto.Name,
@@ -25,8 +26,8 @@ namespace NZWalks.API.Controllers
                 RegionImgUrl = addRegionDto.RegionImgUrl,
             };
 
-            _context.Regions.Add(region);
-            _context.SaveChanges();
+            await _context.Regions.AddAsync(region);
+            await _context.SaveChangesAsync();
 
             var regionDto = new RegionDto()
             {
@@ -41,9 +42,9 @@ namespace NZWalks.API.Controllers
 
         //Get all region
         [HttpGet]
-        public IActionResult GetAll()
+        public async Task<IActionResult> GetAll()
         {
-            var regions = _context.Regions.ToList();
+            var regions = await _context.Regions.ToListAsync();
 
             if (regions == null)
             {
@@ -67,9 +68,9 @@ namespace NZWalks.API.Controllers
 
         //Get single region
         [HttpGet("{id}")]
-        public IActionResult GetById([FromRoute] Guid id)
+        public async Task<IActionResult> GetById([FromRoute] Guid id)
         {
-            var regions = _context.Regions.Where(e => e.Id == id).FirstOrDefault();
+            var regions = await _context.Regions.Where(e => e.Id == id).FirstOrDefaultAsync();
             if (regions == null)
             {
                 return NotFound();
@@ -88,9 +89,9 @@ namespace NZWalks.API.Controllers
 
         //Update Region
         [HttpPut("{id:Guid}")]
-        public IActionResult Update([FromRoute]Guid id,[FromBody] AddRegionDto addRegionDto)
+        public async Task<IActionResult> Update([FromRoute]Guid id,[FromBody] AddRegionDto addRegionDto)
         {
-            var region = _context.Regions.FirstOrDefault(e=>e.Id==id);
+            var region = await _context.Regions.FirstOrDefaultAsync(e=>e.Id==id);
 
             if (region == null)
             {
@@ -101,7 +102,7 @@ namespace NZWalks.API.Controllers
             region.Code = addRegionDto.Code;
             region.RegionImgUrl = addRegionDto.RegionImgUrl;
             //_context.Regions.Update(reg);   ==Not required this line because EF core tracking these Three property
-            _context.SaveChanges();
+            await _context.SaveChangesAsync();
 
             var regionDto = new RegionDto()
             {
@@ -117,16 +118,16 @@ namespace NZWalks.API.Controllers
 
         //Delete region
         [HttpDelete("{id}")]
-        public IActionResult DeleteById([FromRoute] Guid id)
+        public async Task<IActionResult> DeleteById([FromRoute] Guid id)
         {
-            var regions = _context.Regions.Where(e => e.Id == id).FirstOrDefault();
+            var regions = await _context.Regions.Where(e => e.Id == id).FirstOrDefaultAsync();
             
             if (regions == null)
             {
                 return NotFound();
             }
             _context.Regions.Remove(regions);
-            _context.SaveChanges();
+            await _context.SaveChangesAsync();
 
             //var regionDto = new RegionDto()
             //{
