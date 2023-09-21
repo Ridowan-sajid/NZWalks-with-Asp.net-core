@@ -1,8 +1,7 @@
-﻿using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.AspNetCore.Mvc;
 using NZWalks.API.Models.Domain;
 using NZWalks.API.Models.DTO;
+using NZWalks.API.Repositories.Interfaces;
 
 namespace NZWalks.API.Controllers
 {
@@ -10,10 +9,10 @@ namespace NZWalks.API.Controllers
     [ApiController]
     public class RegionsController : ControllerBase
     {
-        private readonly ApplicationDbContext _context;
-        public RegionsController(ApplicationDbContext context)
+        private readonly IRegionRepository _regionRepository;
+        public RegionsController(IRegionRepository regionRepository)
         {
-            _context = context;
+            _regionRepository = regionRepository;
         }
 
         //Create Region
@@ -26,8 +25,7 @@ namespace NZWalks.API.Controllers
                 RegionImgUrl = addRegionDto.RegionImgUrl,
             };
 
-            await _context.Regions.AddAsync(region);
-            await _context.SaveChangesAsync();
+            region=await _regionRepository.CreateAsync(region);
 
             var regionDto = new RegionDto()
             {
@@ -44,7 +42,7 @@ namespace NZWalks.API.Controllers
         [HttpGet]
         public async Task<IActionResult> GetAll()
         {
-            var regions = await _context.Regions.ToListAsync();
+            var regions = await _regionRepository.GetRegionsAsync();
 
             if (regions == null)
             {
@@ -70,7 +68,7 @@ namespace NZWalks.API.Controllers
         [HttpGet("{id}")]
         public async Task<IActionResult> GetById([FromRoute] Guid id)
         {
-            var regions = await _context.Regions.Where(e => e.Id == id).FirstOrDefaultAsync();
+            var regions = await _regionRepository.GetRegionByIdAsync(id);
             if (regions == null)
             {
                 return NotFound();
@@ -91,25 +89,22 @@ namespace NZWalks.API.Controllers
         [HttpPut("{id:Guid}")]
         public async Task<IActionResult> Update([FromRoute]Guid id,[FromBody] AddRegionDto addRegionDto)
         {
-            var region = await _context.Regions.FirstOrDefaultAsync(e=>e.Id==id);
-
-            if (region == null)
+            var region = new Region()
             {
-                return NotFound("You input wrong id!");
-            }
+                Name = addRegionDto.Name,
+                Code = addRegionDto.Code,
+                RegionImgUrl = addRegionDto.RegionImgUrl
+            };
 
-            region.Name = addRegionDto.Name;
-            region.Code = addRegionDto.Code;
-            region.RegionImgUrl = addRegionDto.RegionImgUrl;
-            //_context.Regions.Update(reg);   ==Not required this line because EF core tracking these Three property
-            await _context.SaveChangesAsync();
+            var regionModel=await _regionRepository.UpdateAsync(id, region);
+
 
             var regionDto = new RegionDto()
             {
-                Id= region.Id,
-                Name = region.Name,
-                Code = region.Code,
-                RegionImgUrl = region.RegionImgUrl
+                Id= regionModel.Id,
+                Name = regionModel.Name,
+                Code = regionModel.Code,
+                RegionImgUrl = regionModel.RegionImgUrl
             };
 
             return Ok(regionDto);
@@ -117,25 +112,14 @@ namespace NZWalks.API.Controllers
 
 
         //Delete region
-        [HttpDelete("{id}")]
+        [HttpDelete("{id:Guid}")]
         public async Task<IActionResult> DeleteById([FromRoute] Guid id)
         {
-            var regions = await _context.Regions.Where(e => e.Id == id).FirstOrDefaultAsync();
-            
-            if (regions == null)
+            var region = await _regionRepository.DeleteByIdAsync(id);
+            if(region == null)
             {
                 return NotFound();
             }
-            _context.Regions.Remove(regions);
-            await _context.SaveChangesAsync();
-
-            //var regionDto = new RegionDto()
-            //{
-            //    Id = regions.Id,
-            //    Name = regions.Name,
-            //    Code = regions.Code,
-            //    RegionImgUrl = regions.RegionImgUrl
-            //};
 
             return Ok("Deleted");
         }
