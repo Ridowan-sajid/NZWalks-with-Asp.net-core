@@ -1,0 +1,2 @@
+Automapper
+Automapper.Extensions.Microsoft.DependencyInjection
