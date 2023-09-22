@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using Microsoft.AspNetCore.Mvc;
+using NZWalks.API.CustomActionFilters;
 using NZWalks.API.Models.Domain;
 using NZWalks.API.Models.DTO;
 using NZWalks.API.Repositories.Interfaces;
@@ -23,13 +24,18 @@ namespace NZWalks.API.Controllers
         [HttpPost]
         public async Task<IActionResult> Create([FromForm] AddRegionDto addRegionDto)
         {
-            var region=_mapper.Map<Region>(addRegionDto);
+            if(ModelState.IsValid)
+            {
+                    var region=_mapper.Map<Region>(addRegionDto);
 
-            region=await _regionRepository.CreateAsync(region);
+                    region=await _regionRepository.CreateAsync(region);
 
-            var regionDto=_mapper.Map<RegionDto>(region);
+                    var regionDto=_mapper.Map<RegionDto>(region);
 
-            return CreatedAtAction(nameof(GetById), new { id = regionDto.Id }, regionDto);
+                    return CreatedAtAction(nameof(GetById), new { id = regionDto.Id }, regionDto);
+        
+            }
+            return BadRequest();
         }
 
         //Get all region
@@ -67,13 +73,13 @@ namespace NZWalks.API.Controllers
 
         //Update Region
         [HttpPut("{id:Guid}")]
+        //After using ValidateModel we don't need to check one by one with if(ModeState.isValid).
+        [ValidateModel]
         public async Task<IActionResult> Update([FromRoute]Guid id,[FromBody] AddRegionDto addRegionDto)
         {
             var region = _mapper.Map<Region>(addRegionDto);
-
             var regionUpdated=await _regionRepository.UpdateAsync(id, region);
-
-
+           
             var regionDto=_mapper.Map<RegionDto>(regionUpdated);
 
             return Ok(regionDto);
