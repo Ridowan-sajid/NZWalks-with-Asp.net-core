@@ -20,6 +20,7 @@ builder.Services.AddSwaggerGen();
 
 //Add DI  
 builder.Services.AddScoped<IRegionRepository, RegionRepository>();
+builder.Services.AddScoped<IWalkRepository, WalkRepository>();
 
 //Add auto mapper service
 builder.Services.AddAutoMapper(typeof(AutoMapperProfile));
