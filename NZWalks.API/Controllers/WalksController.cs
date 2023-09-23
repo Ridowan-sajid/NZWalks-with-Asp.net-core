@@ -33,9 +33,9 @@ namespace NZWalks.API.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> GetAllWalk()
+        public async Task<IActionResult> GetAllWalk([FromQuery]string? filterOn, [FromQuery] string? filterQuery, [FromQuery] string? sorting, [FromQuery] bool? isAssending, [FromQuery] int pageNumber=1, [FromQuery] int pageSize=100)
         {
-            var res=await _walkRepository.GetWalksAsync();
+            var res=await _walkRepository.GetWalksAsync(filterOn,filterQuery,sorting,isAssending,pageNumber,pageSize);
             if (res == null)
             {
                 return NotFound();
